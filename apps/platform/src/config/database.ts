@@ -12,6 +12,7 @@ export interface DatabaseConfig {
     password: string
     database?: string
     migrationPaths: string[]
+    engine?: string
 }
 
 export type Query = (builder: Database.QueryBuilder<any>) => Database.QueryBuilder<any>
@@ -28,6 +29,8 @@ knex.QueryBuilder.extend('when', function(
 
 const connect = (config: DatabaseConfig, withDB = true) => {
     let connection = removeKey('migrationPaths', config)
+    connection = removeKey('engine', connection)
+    
     if (!withDB) {
         connection = removeKey('database', connection)
     }

@@ -37,7 +37,15 @@ exports.up = async function(knex) {
 
     // copy gate step rules back from lists
     const dbClient = knex.client.config.client;
-    if (dbClient.includes('maria') || dbClient.includes('mariadb')) {
+    const isMariaDBByClient = dbClient && (dbClient.includes('maria') || dbClient.includes('mariadb'));
+    const isMariaDBByEnv = process.env.DB_ENGINE === 'mariadb';
+    const isMariaDB = isMariaDBByClient || isMariaDBByEnv;
+    
+    console.log('DB_ENGINE:', process.env.DB_ENGINE);
+    console.log('knex client:', dbClient);
+    console.log('Using MariaDB syntax:', isMariaDB);
+    
+    if (isMariaDB) {
         await knex.raw(`
             update journey_steps s
                 inner join lists l ON JSON_UNQUOTE(JSON_EXTRACT(s.data, '$.list_id')) = l.id
@@ -47,7 +55,7 @@ exports.up = async function(knex) {
     } else {
         await knex.raw(`
             update journey_steps s
-                inner join lists l on s.data->'$.list_id' = l.id
+                inner join lists l ON JSON_UNQUOTE(JSON_EXTRACT(s.data, '$.list_id')) = l.id
             set s.data = json_object('rule', l.rule)
             where s.type = 'gate' and l.rule is not null;
         `);

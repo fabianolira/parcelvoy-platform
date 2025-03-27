@@ -69,6 +69,7 @@ export default (type?: EnvType): Env => {
             port: parseInt(process.env.DB_PORT!),
             database: process.env.DB_DATABASE!,
             migrationPaths: process.env.DB_MIGRATION_PATHS?.split(',') ?? [],
+            engine: process.env.DB_ENGINE
         },
         redis: {
             host: process.env.REDIS_HOST!,
