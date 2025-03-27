@@ -36,12 +36,22 @@ exports.up = async function(knex) {
     `)
 
     // copy gate step rules back from lists
-    await knex.raw(`
-        update journey_steps s
-            inner join lists l on s.data->'$.list_id' = l.id
-        set s.data = json_object('rule', l.rule)
-        where s.type = 'gate' and l.rule is not null;
-    `)
+    const dbClient = knex.client.config.client;
+    if (dbClient.includes('maria') || dbClient.includes('mariadb')) {
+        await knex.raw(`
+            update journey_steps s
+                inner join lists l ON JSON_UNQUOTE(JSON_EXTRACT(s.data, '$.list_id')) = l.id
+            set s.data = json_object('rule', l.rule)
+            where s.type = 'gate' and l.rule is not null;
+        `);
+    } else {
+        await knex.raw(`
+            update journey_steps s
+                inner join lists l on s.data->'$.list_id' = l.id
+            set s.data = json_object('rule', l.rule)
+            where s.type = 'gate' and l.rule is not null;
+        `);
+    }
 }
 
 exports.down = async function(knex) {
