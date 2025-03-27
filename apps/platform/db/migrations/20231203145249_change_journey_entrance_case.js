@@ -1,4 +1,4 @@
-
+exports.up = async function(knex) {
     const dbClient = knex.client.config.client;
     const isMariaDBByClient = dbClient && (dbClient.includes('maria') || dbClient.includes('mariadb'));
     const isMariaDBByEnv = process.env.DB_ENGINE === 'mariadb';
